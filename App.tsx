@@ -16,13 +16,20 @@ import {
 } from './examples/nodes/Dropdown';
 import { ProfilerProvider, useRenderCountLogger } from './useProfiler';
 
-const renderers = {
-  'render-props': ({ i }) => <RenderPropsWithTarget i={i} />,
-  'render-props-memoized': ({ i }) => <RenderPropsWithTargetMemoized i={i} />,
-  'element-types': ({ i }) => <ElementTypeWithTarget i={i} />,
-  'element-types-memoized': ({ i }) => <ElementTypeWithTargetMemoized i={i} />,
-  nodes: ({ i }) => <NodesWithTarget i={i} />,
-  'nodes-memoized': ({ i }) => <NodesWithTargetMemoized i={i} />,
+const renderers: Record<
+  string,
+  React.ComponentProps<typeof PerformanceTest>['renderDropdown']
+> = {
+  'render-props': ({ index }) => <RenderPropsWithTarget i={index} />,
+  'render-props-memoized': ({ index }) => (
+    <RenderPropsWithTargetMemoized i={index} />
+  ),
+  'element-types': ({ index }) => <ElementTypeWithTarget i={index} />,
+  'element-types-memoized': ({ index }) => (
+    <ElementTypeWithTargetMemoized i={index} />
+  ),
+  nodes: ({ index }) => <NodesWithTarget i={index} />,
+  'nodes-memoized': ({ index }) => <NodesWithTargetMemoized i={index} />,
 };
 
 export default function App() {
@@ -35,9 +42,10 @@ export default function App() {
 
 const ProfiledApp = () => {
   const [testName, setTestName] = useState('render-props');
-  const { count, rerender } = useForceRerender();
+  const [count, setCount] = useState(0);
 
   useRenderCountLogger();
+
   return (
     <React.Fragment>
       <select value={testName} onChange={(e) => setTestName(e.target.value)}>
@@ -47,31 +55,24 @@ const ProfiledApp = () => {
           </option>
         ))}
       </select>
-      <div onClick={rerender}>Rerender {count}</div>
+      <button onClick={() => setCount((c) => c + 1)}>Rerender</button>
+      <div>Render Count = {count}</div>
       <PerformanceTest renderDropdown={renderers[testName]} />
     </React.Fragment>
   );
 };
 
-const useForceRerender = () => {
-  const [count, setCount] = useState(0);
-  const rerender = () => {
-    setCount((count) => count + 1);
-  };
-  return { count, rerender };
-};
-
 const PerformanceTest = ({
   renderDropdown,
 }: {
-  renderDropdown: ({ i }: { i: number }) => React.ReactNode;
+  renderDropdown: ({ index }: { index: number }) => React.ReactNode;
 }) => {
   return (
     <React.Fragment>
-      {Array(4000)
+      {Array(2000)
         .fill(0)
-        .map((i, k) => {
-          return renderDropdown({ i: k });
+        .map((_, index) => {
+          return renderDropdown({ index });
         })}
     </React.Fragment>
   );
