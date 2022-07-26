@@ -1,21 +1,27 @@
 import { useRef } from 'react';
 import * as React from 'react';
 
-const ProfilerContext = React.createContext<{
-  onRender: (id: string) => void;
+type ProfilerContextType = {
+  onRender: React.ComponentProps<typeof React.Profiler>['onRender'];
   renderCounts: Record<string, number>;
-  timeoutId: number;
-}>(undefined);
+  renderTimes: Record<string, number[]>;
+  timeoutId: number | undefined;
+};
+
+const ProfilerContext = React.createContext<ProfilerContextType>(undefined);
 
 export const ProfilerProvider = ({ children }) => {
-  const value = useRef({
+  const value = useRef<ProfilerContextType>({
     timeoutId: undefined,
     renderCounts: {},
-    onRender: (id) => {
+    renderTimes: {},
+    onRender: (id, phase, actualDuration) => {
       if (value.current.renderCounts[id] === undefined) {
+        value.current.renderTimes[id] = [actualDuration];
         value.current.renderCounts[id] = 1;
       } else {
         value.current.renderCounts[id] += 1;
+        value.current.renderTimes[id].push(actualDuration);
       }
     },
   });
@@ -36,14 +42,17 @@ export const Profiler = ({ id, children }) => {
   );
 };
 
-export const useRenderCountLogger = () => {
+export const useProfilerLogger = () => {
   const value = React.useContext(ProfilerContext);
-  const startTime = performance.now();
   React.useEffect(() => {
-    const totalTime = performance.now() - startTime;
     clearTimeout(value.timeoutId);
     value.timeoutId = setTimeout(() => {
-      console.log('Profiler', totalTime, 'counts', value.renderCounts);
+      const data = Object.entries(value.renderTimes).map(([key, v]) => ({
+        name: key,
+        avg: v.reduce((acc, v) => acc + v, 0) / v.length,
+        renderCount: value.renderCounts[key],
+      }));
+      console.table(data.concat({ name: 'spacer' }));
     }, 100);
   });
 };

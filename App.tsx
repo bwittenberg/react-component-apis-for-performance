@@ -14,12 +14,9 @@ import {
   DropdownWithTarget as NodesWithTarget,
   DropdownWithTargetMemoized as NodesWithTargetMemoized,
 } from './examples/nodes/Dropdown';
-import { ProfilerProvider, useRenderCountLogger } from './useProfiler';
+import { Profiler, ProfilerProvider, useProfilerLogger } from './useProfiler';
 
-const renderers: Record<
-  string,
-  React.ComponentProps<typeof PerformanceTest>['renderDropdown']
-> = {
+const renderers: Record<string, PerformanceTestProps['renderDropdown']> = {
   'render-props': ({ index }) => <RenderPropsWithTarget i={index} />,
   'render-props-memoized': ({ index }) => (
     <RenderPropsWithTargetMemoized i={index} />
@@ -44,10 +41,10 @@ const ProfiledApp = () => {
   const [testName, setTestName] = useState('render-props');
   const [count, setCount] = useState(0);
 
-  useRenderCountLogger();
+  useProfilerLogger();
 
   return (
-    <React.Fragment>
+    <Profiler id={`App[${testName}]`}>
       <select value={testName} onChange={(e) => setTestName(e.target.value)}>
         {Object.keys(renderers).map((key) => (
           <option key={key} value={key}>
@@ -58,18 +55,18 @@ const ProfiledApp = () => {
       <button onClick={() => setCount((c) => c + 1)}>Rerender</button>
       <div>Render Count = {count}</div>
       <PerformanceTest renderDropdown={renderers[testName]} />
-    </React.Fragment>
+    </Profiler>
   );
 };
 
-const PerformanceTest = ({
-  renderDropdown,
-}: {
+type PerformanceTestProps = {
   renderDropdown: ({ index }: { index: number }) => React.ReactNode;
-}) => {
+};
+
+const PerformanceTest = ({ renderDropdown }: PerformanceTestProps) => {
   return (
     <React.Fragment>
-      {Array(2000)
+      {Array(1000)
         .fill(0)
         .map((_, index) => {
           return renderDropdown({ index });
