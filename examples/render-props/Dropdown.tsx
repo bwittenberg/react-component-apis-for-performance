@@ -1,15 +1,39 @@
 import * as React from 'react';
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
+import { Profiler } from '../../useProfiler';
 
 type Props = {
-  target: () => React.ReactNode;
+  target: ({ exampleName }: { exampleName: string }) => React.ReactNode;
+  cmpName: string;
 };
 
-export const Dropdown = memo(({ target }: Props) => {
-  return <div>{target()}</div>;
+export const Dropdown = memo(({ target, cmpName }: Props) => {
+  return (
+    <Profiler id={cmpName}>
+      <div>{target({ exampleName: 'render-props' })}</div>
+    </Profiler>
+  );
 });
 
-export const BoundDropdown = memo((i) => {
-  const target = () => <div>render-props {i}</div>;
-  return <Dropdown target={target} />;
-});
+export const DropdownWithTarget = ({ i }) => {
+  const target = ({ exampleName }) => (
+    <div>
+      {exampleName}-{i}
+    </div>
+  );
+  return <Dropdown cmpName="render-props" target={target} />;
+};
+
+export const DropdownWithTargetMemoized = ({ i }) => {
+  const target = useMemo(
+    () =>
+      ({ exampleName }) =>
+        (
+          <div>
+            {exampleName}-{i}
+          </div>
+        ),
+    [i]
+  );
+  return <Dropdown cmpName="render-props-memoized" target={target} />;
+};

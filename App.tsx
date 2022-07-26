@@ -1,26 +1,45 @@
-import * as React from 'react';
-import { useState } from 'react';
-import { Dropdown } from './examples/element-types/Dropdown';
-import { Dropdown as Node } from './examples/nodes/Dropdown';
-import { Dropdown as RenderProps } from './examples/render-props/Dropdown';
 import './style.css';
 
-const Target = () => <div>Element Type</div>;
+import * as React from 'react';
+import { useRef, useState } from 'react';
+import {
+  DropdownWithTarget as RenderPropsWithTarget,
+  DropdownWithTargetMemoized as RenderPropsWithTargetMemoized,
+} from './examples/render-props/Dropdown';
+import {
+  DropdownWithTarget as ElementTypeWithTarget,
+  DropdownWithTargetMemoized as ElementTypeWithTargetMemoized,
+} from './examples/element-types/Dropdown';
+import {
+  DropdownWithTarget as NodesWithTarget,
+  DropdownWithTargetMemoized as NodesWithTargetMemoized,
+} from './examples/nodes/Dropdown';
+import { ProfilerProvider, useRenderCountLogger } from './useProfiler';
 
 const renderers = {
-  'render-props': () => <RenderProps target={() => <div>render-props</div>} />,
-  node: () => <Node target={<div>node</div>} />,
-  'element-type': () => <Dropdown Target={Target} />,
+  'render-props': ({ i }) => <RenderPropsWithTarget i={i} />,
+  'render-props-memoized': ({ i }) => <RenderPropsWithTargetMemoized i={i} />,
+  'element-types': ({ i }) => <ElementTypeWithTarget i={i} />,
+  'element-types-memoized': ({ i }) => <ElementTypeWithTargetMemoized i={i} />,
+  nodes: ({ i }) => <NodesWithTarget i={i} />,
+  'nodes-memoized': ({ i }) => <NodesWithTargetMemoized i={i} />,
 };
 
 export default function App() {
+  return (
+    <ProfilerProvider>
+      <ProfiledApp />
+    </ProfilerProvider>
+  );
+}
+
+const ProfiledApp = () => {
   const [testName, setTestName] = useState('render-props');
   const { count, rerender } = useForceRerender();
 
-  useRenderTimer('App');
-
+  useRenderCountLogger();
   return (
-    <div>
+    <React.Fragment>
       <select value={testName} onChange={(e) => setTestName(e.target.value)}>
         {Object.keys(renderers).map((key) => (
           <option key={key} value={key}>
@@ -30,9 +49,9 @@ export default function App() {
       </select>
       <div onClick={rerender}>Rerender {count}</div>
       <PerformanceTest renderDropdown={renderers[testName]} />
-    </div>
+    </React.Fragment>
   );
-}
+};
 
 const useForceRerender = () => {
   const [count, setCount] = useState(0);
@@ -42,24 +61,17 @@ const useForceRerender = () => {
   return { count, rerender };
 };
 
-const useRenderTimer = (message: string) => {
-  const startTime = performance.now();
-  React.useEffect(() => {
-    console.log(message, performance.now() - startTime);
-  }, [startTime]);
-};
-
 const PerformanceTest = ({
   renderDropdown,
 }: {
-  renderDropdown: () => React.ReactNode;
+  renderDropdown: ({ i }: { i: number }) => React.ReactNode;
 }) => {
   return (
     <React.Fragment>
-      {Array(2000)
+      {Array(1000)
         .fill(0)
-        .map((v, k) => {
-          return renderDropdown();
+        .map((i, k) => {
+          return renderDropdown({ i: k });
         })}
     </React.Fragment>
   );
