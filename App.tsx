@@ -1,7 +1,7 @@
 import './style.css';
 
 import * as React from 'react';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import {
   DropdownWithTarget as RenderPropsWithTarget,
   DropdownWithTargetMemoized as RenderPropsWithTargetMemoized,
@@ -68,7 +68,7 @@ const PerformanceTest = ({
 }) => {
   return (
     <React.Fragment>
-      {Array(1000)
+      {Array(4000)
         .fill(0)
         .map((i, k) => {
           return renderDropdown({ i: k });
