@@ -1,7 +1,3 @@
-# react-ts-8imphe
-
-[Edit on StackBlitz ⚡️](https://stackblitz.com/edit/react-ts-8imphe)
-
 # Performant Component APIs in React
 
 For users, performance is critical. For developers, flexibility can improve modifiability. How can React developers build performant components that are also flexible?
