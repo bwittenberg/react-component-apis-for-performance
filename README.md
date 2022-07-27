@@ -6,12 +6,27 @@
 
 For users, performance is critical. For developers, flexibility can improve modifiability. How can React developers build performant components that are also flexible?
 
-This post will answer the following questions:
+This post will answer the following questions using a `Tooltip` component as a concrete implementation example.
 
 - What are function props, and what forms are available?
 - How can I leverage function props to build flexible components?
 - How to optimize components that use function props?
 - What are the tradeoffs between the options?
+
+The basic Tooltip component follows. It's not useful, because the trigger and content are hardcoded.
+
+```tsx
+import { useHover } from 'my-use-hover-hook'; // assume implemented as suggested on https://usehooks.com/useHover/
+
+const TooltipContent = ({ isVisible, content }) => {
+  return isVisible ? <div>content</div> : null;
+}
+
+const Tooltip = () => {
+  const [hoverRef, isHovered] = useHover();
+  return <span><div ref={hoverRef}>trigger</div><TooltipContent isVisible={isHovering} content="content" /></span>
+}
+```
 
 ## Function prop forms
 
@@ -34,13 +49,7 @@ const App = () => {
 
 ### ReactNode Props
 
-The most popular ReactNode prop is `children`.
-
-```tsx
-const CmpWithChildren = ({ children }) => <div>{children}</div>;
-```
-
-ReactNodes can be assigned to any prop, and one example is implemented below:
+The most popular ReactNode prop is `children`. However, ReactNodes can be assigned to any prop, and one example is implemented below:
 
 ```tsx
 const ReactNodeCmp = ({ node }) => <div>{node}</div>;
@@ -63,7 +72,7 @@ const App = () => {
 }
 ```
 
-Each of these implementations
+Each implementation has tradeoffs.
 
 Questions
 
